@@ -1,0 +1,50 @@
+# last edited 21.11.2019 8:30 by Tobias Anzinger
+
+version: '3.3'
+
+services:
+  frontend:
+    image: nginx:latest
+    ports:
+      - 80:80
+    volumes:
+      - ./frontend/content:/usr/share/nginx/html
+    restart: unless-stopped
+
+  backend:
+    image: tomcat:8.0
+    restart: always
+    ports:
+      - 8080:8080
+    volumes:
+      - ./backend/:/usr/local/tomcat/webapps/
+    restart: unless-stopped
+
+  database:
+    image: hypriot/rpi-mysql
+    volumes:
+      - ./database/mysql:/var/lib/mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: '***'
+      MYSQL_USER: 'api'
+      MYSQL_PASSWORD: '***'
+      MYSQL_DATABASE: 'AlorDB'
+    ports:
+      - 3306:3306
+    expose:
+      - 3306
+
+  phpmyadmin:
+    image: jackgruber/phpmyadmin:latest
+    restart: always
+    environment:
+      - PMA_HOST=database
+    ports:
+      - 33060:80
+    links:
+      - database
+
+# to apply all new database changes run this commands bevore "docker-compose up":
+# sudo rm -rf /alor/database/mysql
+# sudo docker system prune -a
